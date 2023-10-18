@@ -1534,19 +1534,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6877bb514081ee2a7ff5ef9de3281f14a4dd4bceac4c09388074a6b5df8a139a"
 
 [[package]]
-name = "minimal-phat-contract"
-version = "0.0.1"
-dependencies = [
- "ink",
- "ink_storage 4.2.1",
- "parity-scale-codec",
- "pink-extension 0.4.6",
- "pink-extension-runtime",
- "scale-info",
- "this-crate",
-]
-
-[[package]]
 name = "miniz_oxide"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3131,6 +3118,19 @@ name = "version_check"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
+
+[[package]]
+name = "vrf"
+version = "0.0.1"
+dependencies = [
+ "ink",
+ "ink_storage 4.2.1",
+ "parity-scale-codec",
+ "pink-extension 0.4.6",
+ "pink-extension-runtime",
+ "scale-info",
+ "this-crate",
+]
 
 [[package]]
 name = "want"

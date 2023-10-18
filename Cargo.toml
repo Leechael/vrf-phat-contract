@@ -1,5 +1,5 @@
 [package]
-name = "minimal-phat-contract"
+name = "vrf"
 version = "0.0.1"
 authors = ["leechael@phala.network"]
 edition = "2021"

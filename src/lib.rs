@@ -5,27 +5,33 @@ use pink_extension as pink;
 
 #[pink::contract(env=PinkEnvironment)]
 #[pink(inner=ink::contract)]
-mod minimal_phat_contract {
+mod vrf {
     use super::pink;
     use pink::PinkEnvironment;
     use this_crate::{version_tuple, VersionTuple};
+    use alloc::vec::Vec;
 
     #[ink(storage)]
-    pub struct Boilerplate {
+    pub struct Vrf {
     }
 
     ///
 
-    impl Boilerplate {
+    impl Vrf {
         #[ink(constructor)]
         pub fn default() -> Self {
-            Self {
-            }
+            Self {}
         }
 
         #[ink(message)]
         pub fn version(&self) -> VersionTuple {
             version_tuple!()
+        }
+
+        #[ink(message)]
+        pub fn get_randomness(&self, salt: Vec<u8>) -> (Vec<u8>, Vec<u8>) {
+            let result = pink::vrf(&salt);
+            (salt, result)
         }
     }
 }
