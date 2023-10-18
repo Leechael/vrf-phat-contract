@@ -1,0 +1,3 @@
+[submodule "vrf_comsumer/lib/forge-std"]
+	path = vrf_comsumer/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
