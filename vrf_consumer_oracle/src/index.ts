@@ -196,6 +196,7 @@ export default function main(request: HexString, secrets: string): HexString {
   if (pokemonId === 292) {
     stats.hp = 1
   }
+  console.log('final', stats)
 
   return encodeAbiParameters(
     [{ type: 'uint256' }, { type: 'uint256' }, { type: 'bytes' }],
