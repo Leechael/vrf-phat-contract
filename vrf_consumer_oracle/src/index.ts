@@ -1,5 +1,6 @@
 import { vrf } from "@phala/pink-env";
-import { Coders } from "@phala/ethers";
+// import { Coders } from "@phala/ethers";
+import { encodeAbiParameters, decodeAbiParameters } from "viem";
 
 type HexString = `0x${string}`
 
@@ -42,38 +43,24 @@ const natures = {
 
 const natureList = Object.keys(natures) as Array<keyof typeof natures>;
 
-const uintCoder = new Coders.NumberCoder(32, false, "uint256");
-const bytesCoder = new Coders.BytesCoder("bytes");
-const uintArrayCoder = new Coders.ArrayCoder(uintCoder, 8, "uint256");
+// const uintCoder = new Coders.NumberCoder(32, false, "uint256");
+// const bytesCoder = new Coders.BytesCoder("bytes");
+// const uintArrayCoder = new Coders.ArrayCoder(uintCoder, 8, "uint256");
 
-function encodeReply(reply: [number, number, string]): HexString {
-  return Coders.encode([uintCoder, uintCoder, bytesCoder], reply) as HexString;
-}
+// function encodeReply(reply: [number, number, string]): HexString {
+//   return Coders.encode([uintCoder, uintCoder, bytesCoder], reply) as HexString;
+// }
 
 // Defined in OracleConsumerContract.sol
 const TYPE_RESPONSE = 0;
 const TYPE_ERROR = 2;
 
 enum Error {
-  BadRequestString = "BadRequestString",
-  FailedToFetchData = "FailedToFetchData",
-  FailedToDecode = "FailedToDecode",
-  MalformedRequest = "MalformedRequest",
-}
-
-function errorToCode(error: Error): number {
-  switch (error) {
-    case Error.BadRequestString:
-      return 1;
-    case Error.FailedToFetchData:
-      return 2;
-    case Error.FailedToDecode:
-      return 3;
-    case Error.MalformedRequest:
-      return 4;
-    default:
-      return 0;
-  }
+  Unknown = 0,
+  BadRequestString = 1,
+  FailedToFetchData = 2,
+  FailedToDecode = 3,
+  MalformedRequest = 4,
 }
 
 //
@@ -85,13 +72,13 @@ function isHexString(str: string): boolean {
   return regex.test(str.toLowerCase());
 }
 
-function stringToHex(str: string): string {
-  var hex = "";
-  for (var i = 0; i < str.length; i++) {
-    hex += str.charCodeAt(i).toString(16);
-  }
-  return "0x" + hex;
-}
+// function stringToHex(str: string): string {
+//   var hex = "";
+//   for (var i = 0; i < str.length; i++) {
+//     hex += str.charCodeAt(i).toString(16);
+//   }
+//   return "0x" + hex;
+// }
 
 function parseReqStr(hexStr: string): string {
   var hex = hexStr.toString();
@@ -114,14 +101,21 @@ export default function main(request: HexString, secrets: string): HexString {
   // console.log(`secrets: ${settings}`);
   let requestId, encodedReqStr;
   try {
-    [requestId, encodedReqStr] = Coders.decode([uintCoder, bytesCoder], request);
+    // [requestId, encodedReqStr] = Coders.decode([uintCoder, bytesCoder], request);
+    [requestId, encodedReqStr] = decodeAbiParameters([{ type: 'uint256' }, { type: 'bytes' }], request);
   } catch (error) {
     console.info("Malformed request received");
-    return encodeReply([
-      TYPE_ERROR,
-      0, 
-      Coders.encode([uintCoder], [errorToCode(error as Error)])
-    ]);
+    return encodeAbiParameters(
+      [{ type: 'uint256' }, { type: 'uint256' }, { type: 'bytes' }],
+      [BigInt(TYPE_ERROR), BigInt(0), encodeAbiParameters(
+        [{ type: 'uint256' }], [BigInt(Error.MalformedRequest)]
+      )]
+    )
+    // return encodeReply([
+    //   TYPE_ERROR,
+    //   0, 
+    //   Coders.encode([uintCoder], [errorToCode(error as Error)])
+    // ]);
   }
   const parsedHexReqStr = parseReqStr(encodedReqStr as string);
   console.log(`Request received for profile ${parsedHexReqStr}`);
@@ -132,7 +126,7 @@ export default function main(request: HexString, secrets: string): HexString {
   // The total available pokemon number is 1017 and starts from 1, so we use first 2 bytes
   // of randomness to generate a random number between 1 and 1017.
   //
-  const randomness = vrf(requestId)
+  const randomness = vrf(requestId.toString())
   console.log('randomness', randomness instanceof Uint8Array, randomness.length, randomness)
   const randomNum = (randomness[0] << 8) + randomness[1]
   const pokemonId = randomNum % 1017 + 1
@@ -142,11 +136,12 @@ export default function main(request: HexString, secrets: string): HexString {
     returnTextBody: true,
   })
   if (resp.statusCode !== 200) {
-    return encodeReply([
-      TYPE_ERROR,
-      0,
-      Coders.encode([uintCoder], [errorToCode(Error.FailedToFetchData)]),
-    ])
+    return encodeAbiParameters(
+      [{ type: 'uint256' }, { type: 'uint256' }, { type: 'bytes' }],
+      [BigInt(TYPE_ERROR), BigInt(0), encodeAbiParameters(
+        [{ type: 'uint256' }], [BigInt(Error.FailedToFetchData)]
+      )]
+    )
   }
   const data = JSON.parse(resp.body as string)
 
@@ -202,18 +197,26 @@ export default function main(request: HexString, secrets: string): HexString {
     stats.hp = 1
   }
 
-  const encoded = Coders.encode([uintArrayCoder], [[
-    pokemonId,
-    level,
-    stats.hp,
-    stats.attack,
-    stats.defense,
-    stats.special_attack,
-    stats.special_defense,
-    stats.speed,
-  ]])
-  console.log(encoded)
+  return encodeAbiParameters(
+    [{ type: 'uint256' }, { type: 'uint256' }, { type: 'bytes' }],
+    [BigInt(TYPE_RESPONSE), requestId, encodeAbiParameters(
+      [{ type: 'uint256[]' }], [[
+        BigInt(pokemonId),
+        BigInt(level),
+        BigInt(stats.hp),
+        BigInt(stats.attack),
+        BigInt(stats.defense),
+        BigInt(stats.special_attack),
+        BigInt(stats.special_defense),
+        BigInt(stats.speed),
+      ]]
+    )]
+  )
 
-  //
-  return encodeReply([TYPE_RESPONSE, requestId, encoded]);
+  // const encoded = Coders.encode([uintArrayCoder], [[
+  // ]])
+  // console.log(encoded)
+
+  // //
+  // return encodeReply([TYPE_RESPONSE, requestId, encoded]);
 }
