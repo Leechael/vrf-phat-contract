@@ -58,41 +58,12 @@ enum Error {
 // Response Util END
 //
 
-function isHexString(str: string): boolean {
-  const regex = /^0x[0-9a-f]+$/;
-  return regex.test(str.toLowerCase());
-}
-
-// function stringToHex(str: string): string {
-//   var hex = "";
-//   for (var i = 0; i < str.length; i++) {
-//     hex += str.charCodeAt(i).toString(16);
-//   }
-//   return "0x" + hex;
-// }
-
-function parseReqStr(hexStr: string): string {
-  var hex = hexStr.toString();
-  if (!isHexString(hex)) {
-    throw Error.BadRequestString;
-  }
-  hex = hex.slice(2);
-  var str = "";
-  for (var i = 0; i < hex.length; i += 2) {
-    const ch = String.fromCharCode(parseInt(hex.substring(i, i + 2), 16));
-    str += ch;
-  }
-  return str;
-}
-
-
 export default function main(request: HexString, apiPrefix: string): HexString {
   // console.log(`handle req: ${request}`);
   // Uncomment to debug the `settings` passed in from the Phat Contract UI configuration.
   // console.log(`secrets: ${settings}`);
   let requestId, encodedReqStr;
   try {
-    // [requestId, encodedReqStr] = Coders.decode([uintCoder, bytesCoder], request);
     [requestId, encodedReqStr] = decodeAbiParameters([{ type: 'uint256' }, { type: 'bytes' }], request);
   } catch (error) {
     // console.info("Malformed request received");
@@ -103,8 +74,6 @@ export default function main(request: HexString, apiPrefix: string): HexString {
       )]
     )
   }
-  // const parsedHexReqStr = parseReqStr(encodedReqStr as string);
-  // console.log(`Request received for profile ${parsedHexReqStr}`);
 
   //
   // Get randomness bytes via Phat Contract VRF, it's uint8 array and it's length is 32.
@@ -118,7 +87,6 @@ export default function main(request: HexString, apiPrefix: string): HexString {
   const pokemonId = randomNum % 1017 + 1
 
   const resp = pink.httpRequest({
-    // url: `https://pokeapi.co/api/v2/pokemon/${pokemonId}`,
     url: `${apiPrefix}/api/v2/pokemon/${pokemonId}`,
     returnTextBody: true,
   })
