@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "./PhatRollupAnchor.sol";
+import "@phala/solidity/contracts/PhatRollupAnchor.sol";
 
 contract RandomPokemon is ERC721, Ownable, PhatRollupAnchor {
     using Strings for uint256;

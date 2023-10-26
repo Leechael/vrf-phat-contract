@@ -56,6 +56,7 @@
     "@phala/fn": "^0.1.13",
     "@phala/pink-env": "^1.0.11",
     "@phala/sdk": "^0.5.3-nightly-20231013",
+    "@phala/solidity": "^0.0.3",
     "dedent": "^1.5.1",
     "dotenv": "^16.0.3",
     "viem": "^1.16.6"
