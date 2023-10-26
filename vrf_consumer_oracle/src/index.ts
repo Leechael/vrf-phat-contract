@@ -1,5 +1,4 @@
 import { vrf } from "@phala/pink-env";
-// import { Coders } from "@phala/ethers";
 import { encodeAbiParameters, decodeAbiParameters } from "viem";
 
 type HexString = `0x${string}`
@@ -42,14 +41,6 @@ const natures = {
 }
 
 const natureList = Object.keys(natures) as Array<keyof typeof natures>;
-
-// const uintCoder = new Coders.NumberCoder(32, false, "uint256");
-// const bytesCoder = new Coders.BytesCoder("bytes");
-// const uintArrayCoder = new Coders.ArrayCoder(uintCoder, 8, "uint256");
-
-// function encodeReply(reply: [number, number, string]): HexString {
-//   return Coders.encode([uintCoder, uintCoder, bytesCoder], reply) as HexString;
-// }
 
 // Defined in OracleConsumerContract.sol
 const TYPE_RESPONSE = 0;
@@ -95,8 +86,8 @@ function parseReqStr(hexStr: string): string {
 }
 
 
-export default function main(request: HexString, secrets: string): HexString {
-  console.log(`handle req: ${request}`);
+export default function main(request: HexString, apiPrefix: string): HexString {
+  // console.log(`handle req: ${request}`);
   // Uncomment to debug the `settings` passed in from the Phat Contract UI configuration.
   // console.log(`secrets: ${settings}`);
   let requestId, encodedReqStr;
@@ -104,21 +95,16 @@ export default function main(request: HexString, secrets: string): HexString {
     // [requestId, encodedReqStr] = Coders.decode([uintCoder, bytesCoder], request);
     [requestId, encodedReqStr] = decodeAbiParameters([{ type: 'uint256' }, { type: 'bytes' }], request);
   } catch (error) {
-    console.info("Malformed request received");
+    // console.info("Malformed request received");
     return encodeAbiParameters(
       [{ type: 'uint256' }, { type: 'uint256' }, { type: 'bytes' }],
       [BigInt(TYPE_ERROR), BigInt(0), encodeAbiParameters(
         [{ type: 'uint256' }], [BigInt(Error.MalformedRequest)]
       )]
     )
-    // return encodeReply([
-    //   TYPE_ERROR,
-    //   0, 
-    //   Coders.encode([uintCoder], [errorToCode(error as Error)])
-    // ]);
   }
-  const parsedHexReqStr = parseReqStr(encodedReqStr as string);
-  console.log(`Request received for profile ${parsedHexReqStr}`);
+  // const parsedHexReqStr = parseReqStr(encodedReqStr as string);
+  // console.log(`Request received for profile ${parsedHexReqStr}`);
 
   //
   // Get randomness bytes via Phat Contract VRF, it's uint8 array and it's length is 32.
@@ -127,12 +113,13 @@ export default function main(request: HexString, secrets: string): HexString {
   // of randomness to generate a random number between 1 and 1017.
   //
   const randomness = vrf(requestId.toString())
-  console.log('randomness', randomness instanceof Uint8Array, randomness.length, randomness)
+  // console.log('randomness', randomness instanceof Uint8Array, randomness.length, randomness)
   const randomNum = (randomness[0] << 8) + randomness[1]
   const pokemonId = randomNum % 1017 + 1
 
   const resp = pink.httpRequest({
-    url: `https://pokeapi.co/api/v2/pokemon/${pokemonId}`,
+    // url: `https://pokeapi.co/api/v2/pokemon/${pokemonId}`,
+    url: `${apiPrefix}/api/v2/pokemon/${pokemonId}`,
     returnTextBody: true,
   })
   if (resp.statusCode !== 200) {
@@ -145,8 +132,8 @@ export default function main(request: HexString, secrets: string): HexString {
   }
   const data = JSON.parse(resp.body as string)
 
-  console.log(data?.id, data?.name)
-  console.log((data?.sprites?.other ?? {})['official-artwork']?.front_default)
+  // console.log(data?.id, data?.name)
+  // console.log((data?.sprites?.other ?? {})['official-artwork']?.front_default)
 
   // base stats / species strengths
   const base_stats = (data?.stats ?? []).reduce((prev: Stats, stat: any) => ({
@@ -160,7 +147,7 @@ export default function main(request: HexString, secrets: string): HexString {
     special_defense: 0,
     speed: 0,
   })
-  console.log(base_stats)
+  // console.log(base_stats)
 
   // We use next 6 bytes to generate a random number between 0 and 31 for
   // individual values (IV).
@@ -172,17 +159,17 @@ export default function main(request: HexString, secrets: string): HexString {
     special_defense: randomness[6] % 32,
     speed: randomness[7] % 32,
   }
-  console.log(ivs)
+  // console.log(ivs)
 
   // the initial level, we keep under 50.
   const level = randomness[8] % 50 + 1
-  console.log(level)
+  // console.log(level)
 
   // nature
   const nature = natureList[randomness[9] % natureList.length]
   const nature_stats = natures[nature]
-  console.log(nature)
-  console.log(nature_stats)
+  // console.log(nature)
+  // console.log(nature_stats)
 
   // the final computed stats
   const stats = {
@@ -196,7 +183,7 @@ export default function main(request: HexString, secrets: string): HexString {
   if (pokemonId === 292) {
     stats.hp = 1
   }
-  console.log('final', stats)
+  // console.log('final', stats)
 
   return encodeAbiParameters(
     [{ type: 'uint256' }, { type: 'uint256' }, { type: 'bytes' }],
@@ -213,11 +200,4 @@ export default function main(request: HexString, secrets: string): HexString {
       ]]
     )]
   )
-
-  // const encoded = Coders.encode([uintArrayCoder], [[
-  // ]])
-  // console.log(encoded)
-
-  // //
-  // return encodeReply([TYPE_RESPONSE, requestId, encoded]);
 }
