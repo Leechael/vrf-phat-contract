@@ -1,0 +1,9 @@
+{
+  "name": "foundry_solidity",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "@phala/solidity": "^0.0.3"
+  }
+}
