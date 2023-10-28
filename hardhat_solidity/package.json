@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "main": "index.js",
   "license": "MIT",
+  "packageManager": "yarn@1.22.19",
   "scripts": {
     "compile": "hardhat compile",
     "clean": "hardhat clean",
